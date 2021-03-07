@@ -23,7 +23,8 @@ class MF_BPR(nn.Module):
         nn.init.normal_(self.embed_investor.weight, std=0.01)
         nn.init.normal_(self.embed_stock.weight, std=0.01)
 
-    def forward(self, investor: torch.Tensor, stock: torch.Tensor) -> torch.Tensor:
+    def forward(self, investor: torch.Tensor, stock_positive: torch.Tensor,
+                stock_negative: torch.Tensor) -> torch.Tensor:
         """
         Parameters
         ----------
@@ -35,8 +36,10 @@ class MF_BPR(nn.Module):
         prediction_positive (torch.Tensor) - current prediction of stocks that the
          investors purchased\n
         """
-        investor = self.embed_investor(investor)
-        stock = self.embed_stock(stock)
-        prediction = (investor * stock).sum(dim=-1)
+        investor = self.embed_user(investor)
+        stock_positive = self.embed_item(stock_positive)
+        stock_negative = self.embed_item(stock_negative)
 
-        return prediction
+        prediction_positive = (investor * stock_positive).sum(dim=-1)
+        prediction_negative = (investor * stock_negative).sum(dim=-1)
+        return prediction_positive, prediction_negative
