@@ -4,8 +4,8 @@ import scipy.sparse as sp
 
 import torch.utils.data as data
 
-negative_path = "/Users/nicolashammer/OneDrive - Northwestern University/Documents/Winter 2021/Deep Learning/personalized_stock_recommender/data/ml-1m.test.negative"
-positive_path = "/Users/nicolashammer/OneDrive - Northwestern University/Documents/Winter 2021/Deep Learning/personalized_stock_recommender/data/ml-1m.train.rating"
+negative_path = "data/ml-1m.test.negative"
+positive_path = "data/ml-1m.train.rating"
 
 def load_all(test_num=100):
 	""" We load all the three file here to save time in each epoch. """
