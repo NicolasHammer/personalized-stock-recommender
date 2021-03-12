@@ -1,7 +1,12 @@
 import torch
 import torch.nn as nn
 
-import numpy as np
+
+def BPR_Loss(positive, negative):
+    distances = positive - negative
+    loss = - torch.sum(torch.log(torch.sigmoid(distances)), 0, keepdim=True)
+
+    return loss
 
 
 class MF_BPR(nn.Module):
@@ -23,23 +28,20 @@ class MF_BPR(nn.Module):
         nn.init.normal_(self.embed_investor.weight, std=0.01)
         nn.init.normal_(self.embed_stock.weight, std=0.01)
 
-    def forward(self, investor: torch.Tensor, stock_positive: torch.Tensor,
-                stock_negative: torch.Tensor) -> torch.Tensor:
+    def forward(self, investor_num: torch.Tensor, stock_num: torch.Tensor) -> torch.Tensor:
         """
         Parameters
         ----------
-        investor (torch.Tensor) - investor ids\n
-        stock_positive (torch.Tensor) - ids of stocks that investors purchased\n
+        investor (torch.Tensor) - investor id\n
+        stock (torch.Tensor) - ids of stocks that investors purchased\n
 
         Output
         ------
-        prediction_positive (torch.Tensor) - current prediction of stocks that the
-         investors purchased\n
+        prediction  (torch.Tensor) - current prediction of stocks that the
+        investors purchased
         """
-        investor = self.embed_user(investor)
-        stock_positive = self.embed_item(stock_positive)
-        stock_negative = self.embed_item(stock_negative)
+        investor = self.embed_investor(investor_num)
+        stock_positive = self.embed_stock(stock_num)
+        prediction = (investor * stock_positive).sum(dim=-1)
 
-        prediction_positive = (investor * stock_positive).sum(dim=-1)
-        prediction_negative = (investor * stock_negative).sum(dim=-1)
-        return prediction_positive, prediction_negative
+        return prediction
