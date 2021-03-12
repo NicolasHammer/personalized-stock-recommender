@@ -316,6 +316,7 @@ def hit_and_auc(rankedlist, test_item, k):
         max_num if len(hits_all) > 0 else 0
     return len(hits_k), auc
 ```
+Finally, all of the code for these implementations are located in [personalized_stock_recommendations.ipynb](personalized_stock_recommendations.ipynb).
 <br/><br/>
 
 ## **Model Efficacy Check with Dummy Dataset**
@@ -335,7 +336,7 @@ def read_dummy():
 #### **Loading Data**
 We first start off with a custom ```Dataset``` object that is created with the PyTorch semantics and is defined in [datasets.py](src/datasets.py).  This dataset loads corresponding user indices, item indices, and interactions of each user.  When we index into the datset, we proced the corresponding user, item, and some negative item which the user has not interacted with yet.
 ```python
-class DummyDataset(data.Dataset):
+class PairwiseDataset(data.Dataset):
     def __init__(self, user_idxs : np.ndarray, item_idxs : np.ndarray, interactions : dict,
         num_items : int):
         assert user_idxs.shape[0] == item_idxs.shape[0]
@@ -406,7 +407,7 @@ train_dummy, test_dummy = train_test_dummy_bpr(dummy_data, num_users, num_items)
 # Training data
 train_users, train_items, train_ratings, interactions = load_dummy_bpr(train_dummy,    
     num_users, num_items)
-train_dummy_dataset = datasets.DummyDataset(np.array(train_users), np.array(train_items),
+train_dummy_dataset = datasets.PairwiseDataset(np.array(train_users), np.array(train_items),
     interactions, num_items)
 train_dataloader = data.DataLoader(dataset = train_dummy_dataset, batch_size = 1024, 
     shuffle = True, num_workers = 4)
@@ -481,16 +482,6 @@ for epoch in range(num_epochs):
     print(f"Epoch {epoch}:\n\tloss = {accumulator[0]/accumulator[1]}\n\thit_rate = {hit_rate}\n\tauc = {auc}")
 ```
 Here are the results of the ```MF_BPR``` model on the MovieLens dataset:
-```python
-x = list(range(1, num_epochs + 1))
-plt.scatter(x, auc_list_bpr, label = "AUC")
-plt.scatter(x, hit_rate_list_bpr, label = "Hit Rate")
-plt.title("HR and AUC over Epoch of MF")
-plt.xlabel("Epoch")
-plt.legend(loc = "lower right")
-plt.xticks(x[0::2])
-plt.ylim((0, 1))
-```
 <p align="center">
 <img src="images/mf_dummy.png" alt = "mf_dummy" width="66%"/>
 <br/><br/>
@@ -498,44 +489,10 @@ plt.ylim((0, 1))
 
 ### **Alternating Least Squares**
 #### **Loading Data**
-Like in the ```MF_BPR``` case, we define two functions to execute a train/test split as well as load the data into user, item, score, and interactions iterables.
+Like in the ```MF_BPR``` case, we define two functions to execute a train/test split as well as load the data into user, item, score, and interactions iterables. These functions are actually exactly the same as in the ```MF_BPR``` case, so, for the sake of brevity, we'll just assign them here.
 ```python
-def train_test_dummy_als(dummy_data : pd.DataFrame, num_users : int, num_items : int):
-    train_items, test_items, train_list = {}, {}, []
-
-    # Iterate through every line in the raw data
-    for line in dummy_data.itertuples():
-        u, i, rating, time = line[1], line[2], line[3], line[4]
-        train_items.setdefault(u, []).append((u, i, rating, time))
-        if u not in test_items or test_items[u][2] < time:
-            test_items[u] = (i, rating, time)
-        
-    # Iterate through every user and add their samples, sorted by timestamp, to the train 
-    # list
-    for u in range(1, num_users + 1):
-        train_list.extend(sorted(train_items[u], key = (lambda x : x[3])))
-
-    test_data = [(key, *value) for key, value in test_items.items()]
-
-    train_data = [item for item in train_list if item not in test_data]
-    train_data = pd.DataFrame(train_data)
-    test_data = pd.DataFrame(test_data)
-    return train_data, test_data
-
-def load_dummy_als(dummy, num_users, num_items):
-    users, items, scores = [], [], []
-    interactions = {}
-    for line in dummy.itertuples():
-        user_index, item_index = int(line[1] - 1), int(line[2] - 1)
-        score = 1 # implicit
-
-        users.append(user_index)
-        items.append(item_index)
-        scores.append(score)
-
-        interactions.setdefault(user_index, []).append(item_index)
-
-    return users, items, scores, interactions
+train_test_dummy_als = train_test_dummy_bpr
+load_dummy_als = load_dummy_bpr
 ```
 Since we're working with analytical solutions, there is no need to create PyTorch ```Dataset``` or ```DataLoader``` objects.
 ```python
@@ -601,16 +558,6 @@ for epoch in range(num_epochs):
     print(f"Epoch {epoch}: hit_rate = {hit_rate}, auc = {auc}")
 ```
 Here are the results of the ```ALS``` model on the MovieLens dataset:
-```python
-x = list(range(1, num_epochs + 1))
-plt.scatter(x, auc_list_als, label = "AUC")
-plt.scatter(x, hit_rate_list_als, label = "Hit Rate")
-plt.title("HR and AUC over Epoch of ALS")
-plt.xlabel("Epoch")
-plt.legend(loc = "lower right")
-plt.xticks(x[0::2])
-plt.ylim((0, 1))
-```
 <p align="center">
 <img src="images/als_dummy.png" alt = "als_dummy" width="66%"/>
 <br/><br/>
@@ -721,16 +668,6 @@ for epoch in range(num_epochs):
     print(f"Epoch {epoch}:\n\tloss = {accumulator[0]/accumulator[1]}\n\thit_rate = {hit_rate}\n\tauc = {auc}")
 ```
 Here are the results of the ```CBOW``` model on the MovieLens dataset:
-```python
-x = list(range(1, num_epochs + 1))
-plt.scatter(x, auc_list_cbow, label = "AUC")
-plt.scatter(x, hit_rate_list_cbow, label = "Hit Rate")
-plt.title("HR and AUC over Epoch of CBOW")
-plt.xlabel("Epoch")
-plt.legend(loc = "lower right")
-plt.xticks(x[0::2])
-plt.ylim((0, 1))
-```
 <p align="center">
 <img src="images/cbow_dummy.png" alt = "cbow_dummy" width="66%"/>
 <br/><br/>
@@ -739,5 +676,200 @@ plt.ylim((0, 1))
 For all three models, we can clearly see that the AUC and hitting rate values are good, thereby implying that our models are indeed effective in this dummy case.  Let's now move on to more interesting data.
 <br/><br/>
 
-## Using the Model on Representative Data
-To start, let's read in the [dataset](data/data_UCI.csv):
+## **RecSys on Representative Data**
+To start, let's read in the representative [dataset](data/data_UCI.xlsx) of transactions:
+```python
+def read_uci():
+    # Read data
+    uci_data = pd.read_excel("data/data_UCI.xlsx", header = 0, engine = "openpyxl")
+
+    # Remove null entries and duplicates
+    uci_data = uci_data[pd.isnull(uci_data["investor_id"]) == False]
+    uci_data = uci_data.drop_duplicates(subset = ["investor_id", "stock_id"])
+
+    # Remove investors with less than twenty entries
+    v = uci_data["investor_id"].value_counts()
+    uci_data = uci_data[uci_data["investor_id"].isin(v.index[v.gt(20)])]
+
+    # Convert columns into 0-based ids
+    uci_data["investor_id"], _ = pd.factorize(uci_data["investor_id"])
+    uci_data["stock_id"], _ = pd.factorize(uci_data["stock_id"])
+
+    num_investors = uci_data.investor_id.unique().shape[0]
+    num_stocks = uci_data.stock_id.unique().shape[0]
+    return uci_data, num_investors, num_stocks
+```
+For the representative dataset, each function that split and loads the data, as well as evaluates the model, looks very similar if not identicle to the corresponding function for the dummy dataset.  Feel free to check in [personalized_stock_recommendations.ipynb](personalized_stock_recommendations.ipynb) for the exact code.  For the sake of brevity, however, these functions will be left out in the upcoming sub-sections.
+<br/><br/>
+
+### **Matrix Factorization with BPR**
+Let's start by reading in the data, as before:
+```python
+# Ready dummy data
+uci_data, num_users, num_items = read_uci()
+train_uci, test_uci = train_test_uci_bpr(uci_data, num_users, num_items)
+
+# Training data
+train_users, train_items, train_ratings, interactions = load_uci_bpr(train_uci,    
+    num_users, num_items)
+train_uci_dataset = datasets.PairwiseDataset(np.array(train_users), np.array(train_items),
+    interactions, num_items)
+train_dataloader = data.DataLoader(dataset = train_uci_dataset, batch_size = 1024, 
+    shuffle = True, num_workers = 4)
+
+# Test data
+_, _, _, test_interactions = load_uci_bpr(test_uci, 
+    num_users, num_items)
+```
+We again create and initialize our model, except now we are only training over 10 epochs due to the size of the dataset.
+```python
+lr, num_epochs, wd, latent_factors = 0.01, 10, 1e-5, 10
+
+bpr_net = mf_bpr.MF_BPR(num_users, num_items, latent_factors) 
+loss = mf_bpr.BPR_Loss
+optimizer = optim.Adam(bpr_net.parameters(), lr = 0.01, weight_decay=wd)
+```
+Now we can train and evaluate.
+```python
+# Train and evaluate the model
+hit_rate_list_bpr = []
+auc_list_bpr = []
+for epoch in range(num_epochs):
+    accumulator, l = utils.Accumulator(2), 0.
+
+    # Train each batch
+    bpr_net.train()
+    for i, (user_idxs, item_idxs, neg_items) in enumerate(train_dataloader):
+        optimizer.zero_grad()
+
+        p_pos = bpr_net(user_idxs, item_idxs)
+        p_neg = bpr_net(user_idxs, neg_items)
+
+        total_loss = loss(p_pos, p_neg)
+        total_loss.backward()
+        optimizer.step()
+        accumulator.add(total_loss, user_idxs.shape[0])
+
+    # Evaluate
+    bpr_net.eval()
+    hit_rate, auc = evaluate_ranking_bpr(bpr_net, test_interactions, interactions, 
+        num_users, num_items)
+    hit_rate_list_bpr.append(hit_rate)
+    auc_list_bpr.append(auc)
+
+    print(f"Epoch {epoch}:\n\tloss = {accumulator[0]/accumulator[1]}\n\thit_rate = {hit_rate}\n\tauc = {auc}")
+```
+Here are the results of the ```MF_BPR``` model on the representative transactions dataset:
+<p align="center">
+<img src="images/mf_uci.png" alt = "mf_uci" width="66%"/>
+<br/><br/>
+</p>
+
+### **Alternating Least Squares**
+Let's first read in the data.
+```python
+#uci_data, num_users, num_items = read_uci()
+train_uci, test_uci = train_test_uci_als(uci_data, num_users, num_items)
+
+# Training data
+train_users, train_items, train_ratings, interactions = load_uci_als(train_uci,    
+    num_users, num_items)
+
+# Test data
+_, _, _, test_interactions = load_uci_als(test_uci, 
+    num_users, num_items)
+```
+Then we initialize the model with only ```num_epochs = 10```.
+```python
+num_epochs, reg, latent_factors = 10, 0.01, 30
+
+ratings_matrix = coo_matrix((train_ratings, (train_users, train_items)), 
+    shape = (num_users, num_items)).todense()
+als_net = als.ALS(num_users, num_items, latent_factors, ratings_matrix, reg)
+```
+Finally, we train and evaluate.
+```python
+hit_rate_list_als = []
+auc_list_als = []
+ 
+for epoch in range(num_epochs):
+    # Train with entire batch
+    als_net.train()
+
+    # Evaluate
+    hit_rate, auc = evaluate_ranking_als(als_net, test_interactions, interactions,
+        num_users, num_items)
+    hit_rate_list_als.append(hit_rate)
+    auc_list_als.append(auc)
+
+    print(f"Epoch {epoch}: hit_rate = {hit_rate}, auc = {auc}")
+```
+Here are the results of the ```ALS``` model on the representative transactions dataset:
+<p align="center">
+<img src="images/als_uci.png" alt = "mf_uci" width="66%"/>
+<br/><br/>
+</p>
+
+### **Word2Vec/CBOW**
+As always, let's first read in the data.
+```python
+window = 10
+
+uci_data, num_users, num_items = read_uci()
+sorted_interactions = load_interactions_cbow(uci_data)
+train_targets, train_contexts, test_targets, test_contexts = train_test_uci_cbow(sorted_interactions, window)
+
+ngrams_train = data.TensorDataset(torch.from_numpy(np.array(train_targets)), 
+        torch.from_numpy(np.array(train_contexts)))
+ngrams_dataloader = data.DataLoader(dataset = ngrams_train, batch_size = 1024, 
+    shuffle = True, num_workers = 4)
+ngrams_test = data.TensorDataset(torch.from_numpy(np.array(test_targets)), 
+    torch.from_numpy(np.array(test_contexts)))
+ngrams_dataloader_test = data.DataLoader(dataset = ngrams_test, batch_size = 1024, 
+    shuffle = False, num_workers = 4)
+```
+Let's now intialize our model which only trains over 10 epochs.
+```python
+embedding_dim, num_epochs, learning_rate = 30, 10, 0.025
+loss = torch.nn.NLLLoss()
+cbow_net = word2vec.CBOW(num_items, embedding_dim, window)
+optimizer = optim.Adam(cbow_net.parameters(), lr = learning_rate)
+```
+Finally, we train and evaluate the model:
+```python
+hit_rate_list_cbow = []
+auc_list_cbow = []
+for epoch in range(num_epochs):
+    accumulator, l = utils.Accumulator(2), 0.
+
+    # Train each batch
+    cbow_net.train()
+    for _, (targets, contexts) in enumerate(ngrams_dataloader):
+        optimizer.zero_grad()
+
+        log_probabilities = cbow_net(contexts)
+
+        total_loss = loss(log_probabilities, targets)
+        total_loss.backward()
+        optimizer.step()
+        accumulator.add(total_loss, targets.shape[0])
+
+    # Evaluate
+    cbow_net.eval()
+    hit_rate, auc = evaluate_ranking_cbow(cbow_net, test_targets, test_contexts, num_items)
+    hit_rate_list_cbow.append(hit_rate)
+    auc_list_cbow.append(auc)
+
+    print(f"Epoch {epoch}:\n\tloss = {accumulator[0]/accumulator[1]}\n\thit_rate = {hit_rate}\n\tauc = {auc}")
+```
+Here are the results of the ```Word2Vec/CBOW``` model on the representative transactions dataset:
+<p align="center">
+<img src="images/cbow_uci.png" alt = "mf_uci" width="66%"/>
+<br/><br/>
+</p>
+
+We see that the ```MF_BPR``` and ```ALS``` models have good hitting rates and AUC values, but the ```CBOW``` model is stagnant and does quite poorly in comparison. Let's see how these models do side by side and compare them against a baseline popularity model.
+<br/><br/>
+
+## **Examining the Results and Baseline Comparison**
+### **Constructing a Baseline Popularity Model**

@@ -6,7 +6,7 @@ import torch
 import torch.utils.data as data
 
 
-class DummyDataset(data.Dataset):
+class PairwiseDataset(data.Dataset):
     def __init__(self, user_idxs : np.ndarray, item_idxs : np.ndarray, interactions : dict,
         num_items : int):
         assert user_idxs.shape[0] == item_idxs.shape[0]
