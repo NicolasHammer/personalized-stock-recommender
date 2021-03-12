@@ -2,7 +2,10 @@ import torch
 import torch.nn as nn
 
 
-def BPR_Loss(positive, negative):
+def BPR_Loss(positive : torch.Tensor, negative : torch.Tensor) -> torch.Tensor:
+    """
+    Given postive and negative examples, compute Bayesian Personalized ranking loss
+    """
     distances = positive - negative
     loss = - torch.sum(torch.log(torch.sigmoid(distances)), 0, keepdim=True)
 
@@ -28,20 +31,19 @@ class MF_BPR(nn.Module):
         nn.init.normal_(self.embed_investor.weight, std=0.01)
         nn.init.normal_(self.embed_stock.weight, std=0.01)
 
-    def forward(self, investor_num: torch.Tensor, stock_num: torch.Tensor) -> torch.Tensor:
+    def forward(self, investors: torch.Tensor, stocks: torch.Tensor) -> torch.Tensor:
         """
         Parameters
         ----------
-        investor (torch.Tensor) - investor id\n
-        stock (torch.Tensor) - ids of stocks that investors purchased\n
+        investors (torch.Tensor) - investor ids\n
+        stocks (torch.Tensor) - ids of stocks that the investors purchased\n
 
         Output
         ------
-        prediction  (torch.Tensor) - current prediction of stocks that the
-        investors purchased
+        scores  (torch.Tensor) - scores of stocks that the investors may purchase next
         """
-        investor = self.embed_investor(investor_num)
-        stock_positive = self.embed_stock(stock_num)
-        prediction = (investor * stock_positive).sum(dim=-1)
+        investor = self.embed_investor(investors)
+        stock_positive = self.embed_stock(stocks)
+        scores = (investor * stock_positive).sum(dim=-1)
 
-        return prediction
+        return scores
