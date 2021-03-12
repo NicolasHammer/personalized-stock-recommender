@@ -1,2 +1,2 @@
 .vscode/
-*.pyc
+src/__pycache__/
