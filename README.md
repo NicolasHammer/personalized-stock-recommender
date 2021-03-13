@@ -1286,3 +1286,9 @@ plt.ylim((0, 1))
 <br/><br/>
 </p>
 While some of the individual results of RecSys algorithms definitely look weird and demand attention, we can clearly see that all RecSys algorithms outperform the baseline popularity method, which is great!  This illustrates that when it comes to presonalized stock predictions, RecSys algorithms definitely should be used by financial services companies that manage investors' portfolios.
+
+# Conclusion
+
+In this replication of "Recommender Systems for Banking and Financial Services", we have learned about the MF with BPR, ALS, and Word2Vec/CBOW models. Specifically, we have learned how these models can be transferred over to the domain of FinTech to personalize stock recommendations.
+
+During the evaluation of the models, we first saw that the models worked well on the dummy MovieLens dataset. When we transferred over to real world transactions, we saw how the models did much better than the baseline popularting model in both AUC and Hitting Rate. This illustrates that when it comes to presonalized stock predictions, RecSys algorithms definitely should be used by financial services companies that manage investors' portfolios. In doing so, comapnies will be able to please their customers and make more money for themselves through commission.
