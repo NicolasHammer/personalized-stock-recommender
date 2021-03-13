@@ -1,7 +1,9 @@
 # **Personalized Stock Recommender Systems**
+**Readability:** This document is meant to be read in a dark Markdown environment which has LaTeX enabled, such as VS Code with the "Markdown All in One" extension.
+<br/><br/>
 
 ## **Contents**
-RecSys for Banking and Financial Services:
+RecSys for Banking and Financial Services
 1. Introduction
 2. Goal
 3. Drawbacks of Current Methods
@@ -10,9 +12,12 @@ RecSys for Banking and Financial Services:
 6. Method 2: Alternating Least Squares
 7. Method 3: Word2Vec/CBOW
 
-Training and Evaluating RecSys Models:
+Training and Evaluating RecSys Models
 1. Dummy Dataset
 2. Representative Dataset
+3. Examining the Transaction Results and Baseline Comparison
+
+Conclusion
 <br/><br/>
 
 # RecSys for Banking and Financial Services
@@ -316,7 +321,7 @@ def hit_and_auc(rankedlist, test_item, k):
         max_num if len(hits_all) > 0 else 0
     return len(hits_k), auc
 ```
-Finally, all of the code for these implementations are located in [personalized_stock_recommendations.ipynb](personalized_stock_recommendations.ipynb).
+For our evaluations, we use $k = 100$.  Finally, all of the code for these implementations are located in [personalized_stock_recommendations.ipynb](personalized_stock_recommendations.ipynb).
 <br/><br/>
 
 ## **Model Efficacy Check with Dummy Dataset**
@@ -439,7 +444,7 @@ def evaluate_ranking_bpr(net, test_input, interactions, num_users, num_items):
         ranked_list[u] = sorted(item_scores, key=lambda t: t[1], reverse=True)
         ranked_items[u] = [r[0] for r in ranked_list[u]]
         
-        temp = metrics.hit_and_auc(ranked_items[u], test_input[u][0], 50)
+        temp = metrics.hit_and_auc(ranked_items[u], test_input[u][0], 100)
         hit_rate.append(temp[0])
         auc.append(temp[1])
     return np.mean(np.array(hit_rate)), np.mean(np.array(auc))
@@ -527,7 +532,7 @@ def evaluate_ranking_als(net, test_input, interactions, num_users, num_items):
         ranked_list[u] = sorted(item_scores, key=lambda t: t[1], reverse=True)
         ranked_items[u] = [r[0] for r in ranked_list[u]]
         
-        temp = metrics.hit_and_auc(ranked_items[u], test_input[u][0], 50)
+        temp = metrics.hit_and_auc(ranked_items[u], test_input[u][0], 100)
         hit_rate.append(temp[0])
         auc.append(temp[1])
     return np.mean(np.array(hit_rate)), np.mean(np.array(auc))
@@ -628,7 +633,7 @@ def evaluate_ranking_cbow(net, test_targets, test_contexts, num_items):
             ranked_list[u] = sorted(item_scores, key=lambda t: t[1], reverse=True)
             ranked_items[u] = [r[0] for r in ranked_list[u]]
         
-            temp = metrics.hit_and_auc(ranked_items[u], test_targets[u], 50)
+            temp = metrics.hit_and_auc(ranked_items[u], test_targets[u], 100)
             hit_rate.append(temp[0])
             auc.append(temp[1])
     return np.mean(np.array(hit_rate)), np.mean(np.array(auc))
@@ -871,5 +876,48 @@ Here are the results of the ```Word2Vec/CBOW``` model on the representative tran
 We see that the ```MF_BPR``` and ```ALS``` models have good hitting rates and AUC values, but the ```CBOW``` model is stagnant and does quite poorly in comparison. Let's see how these models do side by side and compare them against a baseline popularity model.
 <br/><br/>
 
-## **Examining the Results and Baseline Comparison**
+## **Examining the Transaction Results and Baseline Comparison**
 ### **Constructing a Baseline Popularity Model**
+To construct a baseline popularity model, we simply need to obtain the $k$ most popular items of training data and supply that as the ```ranked_list``` to our metrics alongside the testing targets.  To do this, we of course start by readying the data.
+```python
+# Ready uci data
+train_test_uci_pop = train_test_uci_bpr
+load_uci_bpr = load_uci_bpr
+
+uci_data, num_users, num_items = read_uci()
+train_uci, test_uci = train_test_uci_bpr(uci_data, num_users, num_items)
+
+# Training data
+_, train_items, _, _ = load_uci_bpr(train_uci,    
+    num_users, num_items)
+
+# Test data
+_, test_items, _, _ = load_uci_bpr(test_uci, 
+    num_users, num_items)
+```
+Then, we compute the most popular items using the ```collections``` standard library.
+```python
+import collections
+
+hit_rate_pop = []
+auc_list_pop = []
+ranked_list = list(collections.Counter(train_items).keys())
+for u in range(num_users):
+    temp = metrics.hit_and_auc(ranked_list, test_items[u], 100)
+    hit_rate_pop.append(temp[0])
+    auc_list_pop.append(temp[1])
+hit_rate_pop_avg = sum(hit_rate_pop)/len(hit_rate_pop)
+auc_pop_avg = sum(auc_list_pop)/len(auc_list_pop)
+```
+<br/><br/>
+
+### **Examining the Transaction Results**
+Combining our baseline results with the transaction results of our three RecSys models, we can compare our hitting rate and AUC metrics:
+<p float="left">
+<img src="images/all_algorithms_auc.png" alt = "mf_uci" width="49.5%"/>
+<img src="images/all_algorithms_hit_rate.png" alt = "mf_uci" width="49.5%"/>
+<br/><br/>
+</p>
+While some of the individual results of RecSys algorithms definitely look weird and demand attention, we can clearly see that all RecSys algorithms outperform the baseline popularity method, which is great!  This illustrates that when it comes to presonalized stock predictions, RecSys algorithms definitely should be used by financial services companies that manage investors' portfolios.
+<br/><br/>
+
