@@ -1,4 +1,5 @@
 # Personalized Stock Recommender Systems
+**Note**: This document includes LaTeX, which cannot be rendered on GitHub's website.  To see the LaTeX, clone the repository to render it locally or view the document in one of the other two forms: .ipynb or .html.
 
 ## **Contents**
 RecSys for Banking and Financial Services
@@ -1253,7 +1254,7 @@ x = list(range(1, num_epochs + 1))
 plt.plot(x, auc_list_bpr_uci, label = "MF_BPR")
 plt.plot(x, auc_list_als_uci, label = "ALS")
 plt.plot(x, auc_list_cbow_uci, label = "CBOW")
-plt.plot([1, 10], [auc_pop_avg, auc_pop_avg], label = "POP.u", color = "grey", alpha = 0.5, linestyle = "dashed")
+plt.plot([1, 10], [auc_pop_avg, auc_pop_avg], label = "POP.u_auc", color = "grey", alpha = 0.5, linestyle = "dashed")
 
 plt.title("AUC over Epoch for All Algorithms")
 plt.legend()
@@ -1270,7 +1271,7 @@ x = list(range(1, num_epochs + 1))
 plt.plot(x, hit_rate_list_bpr_uci, label = "MF_BPR")
 plt.plot(x, hit_rate_list_als_uci, label = "ALS")
 plt.plot(x, hit_rate_list_cbow_uci, label = "CBOW")
-plt.plot([1, 10], [hit_rate_pop_avg, hit_rate_pop_avg], label = "POP.u", color = "grey", alpha = 0.5, linestyle = "dashed")
+plt.plot([1, 10], [hit_rate_pop_avg, hit_rate_pop_avg], label = "POP.u_hit", color = "grey", alpha = 0.5, linestyle = "dashed")
 
 plt.title("Hitting Rate over Epoch for All Algorithms")
 plt.legend()
@@ -1280,13 +1281,8 @@ plt.ylim((0, 1))
 ```
 
 <p float="left">
-<img src="images/all_algorithms_auc.png" alt = "mf_uci" width="49.5%"/>
-<img src="images/all_algorithms_hit_rate.png" alt = "mf_uci" width="49.5%"/>
+<img src="images/all_algorithms_AUC.png" alt = "mf_uci_auc" width="49.5%"/>
+<img src="images/all_algorithms_hit_rate.png" alt = "mf_uci_hit" width="49.5%"/>
 <br/><br/>
 </p>
 While some of the individual results of RecSys algorithms definitely look weird and demand attention, we can clearly see that all RecSys algorithms outperform the baseline popularity method, which is great!  This illustrates that when it comes to presonalized stock predictions, RecSys algorithms definitely should be used by financial services companies that manage investors' portfolios.
-
-
-```python
-
-```
