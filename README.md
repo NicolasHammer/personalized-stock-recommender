@@ -1,6 +1,5 @@
 # Personalized Stock Recommender Systems
 **Note**: This document includes LaTeX, which cannot be rendered on GitHub's website.  To see the LaTeX, clone the repository to render it locally or view the document in one of the other two forms: .ipynb or .html.
-<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 
 ## **Contents**
 RecSys for Banking and Financial Services
