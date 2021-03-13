@@ -1,6 +1,5 @@
 # **Personalized Stock Recommender Systems**
-**Readability:** This document is meant to be read in a dark Markdown environment which has LaTeX enabled, such as VS Code with the "Markdown All in One" extension.
-<br/><br/>
+
 
 ## **Contents**
 RecSys for Banking and Financial Services
@@ -919,5 +918,3 @@ Combining our baseline results with the transaction results of our three RecSys 
 <br/><br/>
 </p>
 While some of the individual results of RecSys algorithms definitely look weird and demand attention, we can clearly see that all RecSys algorithms outperform the baseline popularity method, which is great!  This illustrates that when it comes to presonalized stock predictions, RecSys algorithms definitely should be used by financial services companies that manage investors' portfolios.
-<br/><br/>
-
