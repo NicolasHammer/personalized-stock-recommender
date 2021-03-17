@@ -320,7 +320,7 @@ def hit_and_auc(rankedlist, test_item, k):
         max_num if len(hits_all) > 0 else 0
     return len(hits_k), auc
 ```
-For our evaluations, we use $k = 100$.  Finally, all of the code for these implementations are located in [personalized_stock_recommendations.ipynb](personalized_stock_recommendations.ipynb).
+For our evaluations, we use $k = 100$.  Finally, all of the code for these implementations are located in [README_notebook.ipynb](README_notebook.ipynb).
 
 ## **Model Efficacy Check with Dummy Dataset**
 
